@@ -1,4 +1,4 @@
-﻿namespace Task_MinI;
+﻿namespace Task_MinI.Models;
 
 public static class Helper
 {
