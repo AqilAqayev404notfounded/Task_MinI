@@ -26,7 +26,7 @@ switch (choice)
             if (!name.IsValidClassroomName())
             {
                 throw new ArgumentException("Duzgun ad daxil et");
-               goto restart;
+                goto restart;
             }
 
             Console.Write("Sinif tipi (Backend/Frontend) daxil edin: ");
@@ -98,18 +98,14 @@ switch (choice)
                 throw new ArgumentException("Duzgun soyad daxil et");
             }
 
-            List<Classroom> classrooms;
-            if (File.Exists(classroomPath))
-            {
-                string result = File.ReadAllText(classroomPath);
-                classrooms = JsonConvert.DeserializeObject<List<Classroom>>(result) ?? new List<Classroom>();
-            }
-            else
+            string classroomData = File.ReadAllText(classroomPath);
+            var classrooms = JsonConvert.DeserializeObject<List<Classroom>>(classroomData);
+            if (classrooms == null || classrooms.Count == 0)
             {
                 throw new Exception("Heç bir sinif yoxdur. Əvvəlcə sinif yaradın.");
             }
 
-            Console.WriteLine("Munku sinifler :");
+            Console.WriteLine("Mövcud siniflər:");
             for (int i = 0; i < classrooms.Count; i++)
             {
                 Console.WriteLine($"{i + 1}. {classrooms[i].Name} ({classrooms[i].Type})");
@@ -125,25 +121,25 @@ switch (choice)
             var student = new Student(studentName, studentSurname);
             selectedClassroom.StudentAdd(student);
 
-            var classroomJson = JsonConvert.SerializeObject(classrooms, Formatting.Indented);
+            var classroomJson = JsonConvert.SerializeObject(classrooms);
             File.WriteAllText(classroomPath, classroomJson);
 
-            List<Student> students;
-            if (File.Exists(studentPath))
-            {
-                string result = File.ReadAllText(studentPath);
-                students = JsonConvert.DeserializeObject<List<Student>>(result) ?? new List<Student>();
-            }
-            else
-            {
-                students = new List<Student>();
-            }
+            string studentData = File.ReadAllText(studentPath);
+            var students = JsonConvert.DeserializeObject<List<Student>>(studentData) ;
 
             students.Add(student);
-            var studentJson = JsonConvert.SerializeObject(students, Formatting.Indented);
+            var studentJson = JsonConvert.SerializeObject(students);
             File.WriteAllText(studentPath, studentJson);
 
             Console.WriteLine("Student ugurla yaradildi ve sinifa elave olundu");
+        }
+        catch (FileNotFoundException)
+        {
+            Console.WriteLine("Student fayli tapilmadi. Yeni fayl yaradilir...");
+            var students = new List<Student>();
+            var studentJson = JsonConvert.SerializeObject(students);
+            File.WriteAllText(studentPath, studentJson);
+            goto restart;
         }
         catch (Exception ex)
         {
@@ -154,14 +150,11 @@ switch (choice)
     case "3":
         try
         {
-            if (File.Exists(studentPath))
+            string result = File.ReadAllText(studentPath);
+            var students = JsonConvert.DeserializeObject<List<Student>>(result);
+            foreach (var student in students)
             {
-                string result = File.ReadAllText(studentPath);
-                var students = JsonConvert.DeserializeObject<List<Student>>(result) ?? new List<Student>();
-                foreach (var student in students)
-                {
-                    Console.WriteLine($"Id: {student.Id}, Name: {student.Name}, Surname: {student.Surname}");
-                }
+                Console.WriteLine($"Id: {student.Id}, Name: {student.Name}, Surname: {student.Surname}");
             }
         }
         catch (Exception ex)
@@ -172,14 +165,30 @@ switch (choice)
     case "4":
         try
         {
-            if (File.Exists(studentPath))
+            string classroomData = File.ReadAllText(classroomPath);
+            var classrooms = JsonConvert.DeserializeObject<List<Classroom>>(classroomData);
+            if (classrooms == null || classrooms.Count == 0)
             {
-                string result = File.ReadAllText(studentPath);
-                var students = JsonConvert.DeserializeObject<List<Student>>(result) ?? new List<Student>();
-                foreach (var student in students)
-                {
-                    Console.WriteLine($"Id: {student.Id}, Name: {student.Name}, Surname: {student.Surname}");
-                }
+                throw new Exception("Heç bir sinif yoxdur.");
+            }
+
+            Console.WriteLine("Mövcud siniflər:");
+            for (int i = 0; i < classrooms.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {classrooms[i].Name} ({classrooms[i].Type})");
+            }
+
+            Console.Write("Sinif nomresini daxil edin: ");
+            if (!int.TryParse(Console.ReadLine(), out int classNumber) || classNumber < 1 || classNumber > classrooms.Count)
+            {
+                throw new ArgumentException("Duzgun sinif nomresi daxil edin");
+            }
+
+            var selectedClassroom = classrooms[classNumber - 1];
+            Console.WriteLine($"Sinif: {selectedClassroom.Name}");
+            foreach (var student in selectedClassroom.Students)
+            {
+                Console.WriteLine($"Id: {student.Id}, Name: {student.Name}, Surname: {student.Surname}");
             }
         }
         catch (Exception ex)
@@ -195,15 +204,14 @@ switch (choice)
             if (int.TryParse(Console.ReadLine(), out int studentId))
             {
                 List<Student> students;
-                if (File.Exists(studentPath))
-                {
+                
                     string result = File.ReadAllText(studentPath);
-                    students = JsonConvert.DeserializeObject<List<Student>>(result) ?? new List<Student>();
+                    students = JsonConvert.DeserializeObject<List<Student>>(result);
                     var student = students.Find(s => s.Id == studentId);
                     if (student != null)
                     {
                         students.Remove(student);
-                        var json = JsonConvert.SerializeObject(students, Formatting.Indented);
+                        var json = JsonConvert.SerializeObject(students);
                         File.WriteAllText(studentPath, json);
                         Console.WriteLine("Telebe silindi");
                     }
@@ -211,7 +219,7 @@ switch (choice)
                     {
                         Console.WriteLine("Telebe tapilmadi");
                     }
-                }
+                
             }
             else
             {
@@ -224,9 +232,9 @@ switch (choice)
         }
         goto restart;
     case "6":
-    return;
-default:
-    Console.WriteLine("Yanlış seçim!");
-    break;
+        return;
+    default:
+        Console.WriteLine("Yanlış seçim!");
+        break;
 
 }

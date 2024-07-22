@@ -30,7 +30,7 @@ public class Classroom
     }
     public void StudentAdd(Student student)
     {
-        if (Students.Count > Limit)
+        if (Students.Count < Limit)
         {
 
             Students.Add(student);
