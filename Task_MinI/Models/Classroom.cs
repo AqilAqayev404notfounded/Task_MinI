@@ -7,7 +7,7 @@ namespace Task_MinI.Models;
 public class Classroom
 {
     static int _id;
-    public static int Id { get; private set; }
+    public static int Id { get;  set; }
     public string Name { get; set; }
     public List<Student> Students;
     public Typess Type { get; set; }

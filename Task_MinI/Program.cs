@@ -100,7 +100,8 @@ switch (choice)
 
             string classroomData = File.ReadAllText(classroomPath);
             var classrooms = JsonConvert.DeserializeObject<List<Classroom>>(classroomData);
-            if (classrooms == null || classrooms.Count == 0)
+            if (classrooms is null) classrooms = new();
+            if (classrooms.Count == 0)
             {
                 throw new Exception("Heç bir sinif yoxdur. Əvvəlcə sinif yaradın.");
             }
@@ -122,14 +123,22 @@ switch (choice)
             selectedClassroom.StudentAdd(student);
 
             var classroomJson = JsonConvert.SerializeObject(classrooms);
-            File.WriteAllText(classroomPath, classroomJson);
-
+            //File.WriteAllText(classroomPath, classroomJson);
+            using (StreamWriter sw= new StreamWriter(classroomPath)) 
+            {
+                sw.WriteLine(classroomJson);
+            }
             string studentData = File.ReadAllText(studentPath);
-            var students = JsonConvert.DeserializeObject<List<Student>>(studentData) ;
-
+            var students = JsonConvert.DeserializeObject<List<Student>>(studentData);
+            if(students is null) students = new();
             students.Add(student);
             var studentJson = JsonConvert.SerializeObject(students);
-            File.WriteAllText(studentPath, studentJson);
+
+            using(StreamWriter sw = new(studentPath))
+            {
+                sw.WriteLine(studentJson);
+            }
+            //File.WriteAllText(studentPath, studentJson);
 
             Console.WriteLine("Student ugurla yaradildi ve sinifa elave olundu");
         }
@@ -143,6 +152,7 @@ switch (choice)
         }
         catch (Exception ex)
         {
+            throw;
             Console.WriteLine($"Xeta: {ex.Message}");
         }
         goto restart;
@@ -204,22 +214,22 @@ switch (choice)
             if (int.TryParse(Console.ReadLine(), out int studentId))
             {
                 List<Student> students;
-                
-                    string result = File.ReadAllText(studentPath);
-                    students = JsonConvert.DeserializeObject<List<Student>>(result);
-                    var student = students.Find(s => s.Id == studentId);
-                    if (student != null)
-                    {
-                        students.Remove(student);
-                        var json = JsonConvert.SerializeObject(students);
-                        File.WriteAllText(studentPath, json);
-                        Console.WriteLine("Telebe silindi");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Telebe tapilmadi");
-                    }
-                
+
+                string result = File.ReadAllText(studentPath);
+                students = JsonConvert.DeserializeObject<List<Student>>(result);
+                var student = students.Find(s => s.Id == studentId);
+                if (student != null)
+                {
+                    students.Remove(student);
+                    var json = JsonConvert.SerializeObject(students);
+                    File.WriteAllText(studentPath, json);
+                    Console.WriteLine("Telebe silindi");
+                }
+                else
+                {
+                    Console.WriteLine("Telebe tapilmadi");
+                }
+
             }
             else
             {
