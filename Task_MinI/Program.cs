@@ -244,6 +244,6 @@ switch (choice)
         return;
     default:
         Console.WriteLine("Yanlış seçim!");
-        break;
+        goto restart;
 
 }
