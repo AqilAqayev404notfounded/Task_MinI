@@ -152,7 +152,6 @@ switch (choice)
         }
         catch (Exception ex)
         {
-            throw;
             Console.WriteLine($"Xeta: {ex.Message}");
         }
         goto restart;
